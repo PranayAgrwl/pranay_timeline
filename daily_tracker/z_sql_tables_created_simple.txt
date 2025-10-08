@@ -4,6 +4,8 @@ CREATE DATABASE IF NOT EXISTS db_pranay_timeline; -- Creates the main database f
 -- Use the newly created database
 USE db_pranay_timeline; -- Selects the database to run subsequent commands
 
+-- we are using the database if0_38135779_db_project_journal in infinity free for now
+
 -- ----------------------------------------
 -- 1. UNIT REFERENCE TABLE
 -- ----------------------------------------
