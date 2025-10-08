@@ -1,0 +1,108 @@
+-- Create the database if it doesn't already exist
+CREATE DATABASE IF NOT EXISTS db_pranay_timeline; -- Creates the main database for the timeline tracker
+
+-- Use the newly created database
+USE db_pranay_timeline; -- Selects the database to run subsequent commands
+
+-- ----------------------------------------
+-- 1. UNIT REFERENCE TABLE
+-- ----------------------------------------
+
+-- Delete the table if it already exists
+DROP TABLE IF EXISTS daily_tracker_habit_units_list; -- Clears the old unit list table for a clean setup
+
+-- Create the new table
+CREATE TABLE daily_tracker_habit_units_list (
+    unit_id INT AUTO_INCREMENT PRIMARY KEY,        -- Unique identifier for each unit (Primary Key)
+    unit_name VARCHAR(255) NOT NULL UNIQUE,        -- The name of the unit (e.g., 'minutes', 'pages'), must be unique
+    unit_notes0 TEXT,                              -- Field for detailed notes on the unit
+    unit_notes1 TEXT,                              -- Secondary notes field
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP   -- Timestamp of when the unit was added
+);
+
+-- ----------------------------------------
+-- 2. HABITS DEFINITION TABLE (Parent Table)
+-- ----------------------------------------
+
+-- Delete the table if it already exists
+DROP TABLE IF EXISTS daily_tracker_habits; -- Clears the old habits table for a clean setup
+
+-- Create the new table
+CREATE TABLE daily_tracker_habits (
+    habit_id INT AUTO_INCREMENT PRIMARY KEY,       -- Unique identifier for the habit (Primary Key)
+    habit_name VARCHAR(255) NOT NULL,              -- The name of the habit (e.g., "Reading", "Meditating")
+    unit_id INT NOT NULL,                          -- Links to the official unit in the units list (Foreign Key)
+    habit_notes0 TEXT,                             -- Field for detailed notes on the habit (e.g., goal)
+    habit_notes1 TEXT,                             -- Secondary notes field
+    is_active BOOLEAN NOT NULL DEFAULT 1,          -- Status: TRUE (1) if the habit is currently being tracked
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- Timestamp of when the habit was created
+    FOREIGN KEY (unit_id) REFERENCES daily_tracker_habit_units_list(unit_id) -- Establishes the link to the units table
+);
+
+-- ----------------------------------------
+-- 3. DAILY LOGS TABLE (Child Table)
+-- ----------------------------------------
+
+-- Delete the table if it already exists
+DROP TABLE IF EXISTS daily_tracker_logs; -- Clears the old logs table for a clean setup
+
+-- Create the new table
+CREATE TABLE daily_tracker_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,         -- Unique identifier for the log entry (Primary Key)
+    habit_id INT NOT NULL,                         -- Links to the parent habit (Foreign Key)
+    log_date DATE NOT NULL,                        -- The specific date the log entry applies to
+    log_time TIME NULL,                            -- Time of when activity was done
+    value DECIMAL(10, 2) NOT NULL,                 -- The tracked measurement value for that day
+    log_notes0 TEXT,                               -- Field for detailed notes on this specific log entry
+    log_notes1 TEXT,                               -- Secondary notes field
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- Timestamp of when the log was entered
+    FOREIGN KEY (habit_id)                         -- Defines the Foreign Key constraint
+        REFERENCES daily_tracker_habits(habit_id)  -- Links the log entry to the habits table
+        ON DELETE CASCADE,                         -- Automatically deletes logs if the habit is removed
+    -- Prevents logging the same habit twice on the same day
+    UNIQUE KEY uq_habit_date (habit_id, log_date)  -- Ensures data integrity for daily tracking
+);
+
+
+
+
+-- ----------------------------------------
+-- 1. USERS TABLE (Parent Table)
+-- ----------------------------------------
+
+-- Delete the table if it already exists
+DROP TABLE IF EXISTS users; -- Clears the old table for a clean setup
+
+-- Table to store user credentials
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,          -- Unique identifier for the user (Primary Key)
+    username VARCHAR(50) NOT NULL UNIQUE,            -- User's login name, must be unique
+    password VARCHAR(255) NOT NULL,                  -- Hashed password storage
+    static_captcha VARCHAR(50) NOT NULL,             -- Static CAPTCHA value for verification (if used)
+    static_otp VARCHAR(50) NOT NULL,                 -- Static OTP value for verification (if used)
+    notes TEXT,                                      -- Field for detailed user notes (Updated to TEXT)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP    -- Timestamp of when the user account was created
+    -- NOTE: Removed the comma (,) after CURRENT_TIMESTAMP to fix a syntax error
+);
+
+-- ----------------------------------------
+-- 2. USER HISTORY TABLE (Child Table)
+-- ----------------------------------------
+
+-- Delete the table if it already exists
+DROP TABLE IF EXISTS user_history; -- Clears the old table for a clean setup
+
+-- Table to log user activity (e.g., logins)
+CREATE TABLE user_history (
+    history_id INT AUTO_INCREMENT PRIMARY KEY,       -- Unique identifier for each history entry (Primary Key)
+    user_id INT NOT NULL,                            -- Links to the user who performed the action (Foreign Key)
+    login_time DATETIME NOT NULL,                    -- Exact time of the login/action
+    ip_address VARCHAR(45) NOT NULL,                 -- IP address from where the user connected
+    -- Storing location info, allowing NULL since it's "not strict"
+    latitude DECIMAL(10, 8) NULL,                    -- Latitude of the connection location
+    longitude DECIMAL(11, 8) NULL,                   -- Longitude of the connection location
+
+    FOREIGN KEY (user_id)                            -- Defines the Foreign Key constraint
+        REFERENCES users(user_id)                    -- Links the history record to the users table
+        ON DELETE CASCADE                            -- Recommended: Deletes history when the user is deleted
+);

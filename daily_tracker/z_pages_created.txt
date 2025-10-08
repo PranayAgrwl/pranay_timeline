@@ -1,0 +1,32 @@
+All Webpages Created List
+
+header.php
+- page to start php
+index.php
+- page to test index page
+footer.php
+- page to end php
+
+navbar.php
+- navbar page for navigation panel
+
+error404.php
+- error page for wrong url during routing
+
+login.php
+- login page to start user session
+
+
+--------------------------------------------------------------------
+
+unit_list.php
+- page for CRUD units list for habits
+
+habits.php
+- page for CRUD habits list
+
+daily_logs.php
+- page for CRUD daily entry
+
+monthly_habit_report.php
+- page for monthly report of daily entries 
